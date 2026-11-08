@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <meta name="robots" content="noindex, nofollow">
+    <title>SocialManager – TikTok-Login</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+               max-width: 560px; margin: 4rem auto; padding: 0 1.5rem; color: #333; line-height: 1.6; }
+        .error { color: #b91c1c; }
+    </style>
+</head>
+<body>
+    <!--
+      TikTok does not accept localhost as an OAuth redirect URI. TikTok redirects
+      here instead, and this page forwards code + state to the self-hosted
+      SocialManager callback. The code is single-use and worthless without the
+      app's client secret, which only the SocialManager server knows.
+      Source: github.com/schwifty00/SocialManager docs/oauth-bounce/
+    -->
+    <p id="msg">Weiterleitung zum SocialManager …</p>
+    <script>
+        (function () {
+            var CALLBACK = "https://localhost:8000/api/v1/accounts/oauth/tiktok/callback";
+            var params = new URLSearchParams(window.location.search);
+            var msg = document.getElementById("msg");
+
+            if (params.get("code") && params.get("state")) {
+                var forward = new URLSearchParams();
+                forward.set("code", params.get("code"));
+                forward.set("state", params.get("state"));
+                window.location.replace(CALLBACK + "?" + forward.toString());
+                return;
+            }
+
+            msg.className = "error";
+            msg.textContent = "TikTok-Login abgebrochen oder fehlgeschlagen: " +
+                (params.get("error_description") || params.get("error") || "kein Code erhalten") +
+                ". Du kannst dieses Fenster schließen und es im SocialManager erneut versuchen.";
+        })();
+    </script>
+</body>
+</html>
